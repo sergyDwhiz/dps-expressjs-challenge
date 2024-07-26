@@ -11,7 +11,7 @@ const dbService = new DbService();
 app.use(express.json());
 
 // Authentication middleware
-const authToken = 'Password123';
+const authToken = process.env.AUTH_TOKEN;
 
 const authMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction) => {
 	const token = req.headers.authorization;
