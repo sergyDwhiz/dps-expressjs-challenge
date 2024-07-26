@@ -115,4 +115,19 @@ export default class DbService {
         }
     }
 
+    // Get reports where words repeat at least thrice
+    async RepeatedWord(keyword: string){
+        try {
+            // Calculate the length of the text in each report (LENGTH(text)).
+            // Remove all occurrences of the keyword from the text (REPLACE(text, :keyword, '')) and calculate the length of the result.
+            // By subtracting the second length from the first, we get the total length of all occurrences of the keyword in the text.
+            // Then divide this by the length of the keyword (LENGTH(:keyword)) to get the number of occurrences of the keyword.
+            // Finally, we check if this number is greater than or equal to 3, which means the keyword appears at least three times.
+            const sql = `SELECT * FROM reports WHERE (LENGTH(text) - LENGTH(REPLACE(text, :keyword, ''))) / LENGTH(:keyword) >= 3`;
+            return db.query(sql, {keyword});
+        } catch (error) {
+            console.error('Error retrieving reports with repeated words:', error);
+            throw error;
+        }
+    }
 }
