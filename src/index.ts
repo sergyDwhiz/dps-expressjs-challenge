@@ -97,13 +97,9 @@ app.delete('/projects/:projectId/reports/:id', async (req, res) => {
 
 // Retrieve all reports with keywords appearing at least thrice
 app.get('/reports/keywords/:keyword', async (req, res) => {
-	try {
-		const keyword = req.params.keyword;
-		const reports = await dbService.RepeatedWord(keyword);
-		res.json(reports);
-	} catch (error) {
-        console.error('Error retrieving reports with repeated words:', error);
-	}
+	const keyword = req.params.keyword;
+	const reports = await dbService.RepeatedWord(keyword);
+	res.json(reports);
 });
 
 app.listen(port, () => {
