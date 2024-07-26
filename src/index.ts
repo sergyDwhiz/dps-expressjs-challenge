@@ -53,7 +53,6 @@ app.post('/projects', async (req, res, next) => {
     }
 });
 
-
 /// read (retrieve) all projects
 app.get('/projects', async (req, res, next) => {
     try {
