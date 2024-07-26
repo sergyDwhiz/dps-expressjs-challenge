@@ -1,4 +1,4 @@
-import express, { Express } from 'express';
+import express, { Express, NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import DbService from '../src/services/DbService';
 
@@ -22,84 +22,163 @@ const authMiddleware = (req: express.Request, res: express.Response, next: expre
 	next();
 };
 app.use(authMiddleware);
+// Define custom error classes
+class ValidationError extends Error {
+	constructor(message: string) {
+	  super(message);
+	  this.name = "ValidationError";
+	}
+  }
+
+  class DatabaseError extends Error {
+	constructor(message: string) {
+	  super(message);
+	  this.name = "DatabaseError";
+	}
+  }
 
 // Define routes for projects
 
 // create project
 app.post('/projects', async (req, res) => {
-	const project = req.body;
-	const newProject = await dbService.createProject(project);
-	res.status(201).json(newProject);
+	try {
+		const { name, description } = req.body;
+		if (!name || !description) {
+			return res.status(400).json({ error: 'Missing required parameters' });
+		}
+		const newProject = await dbService.createProject({ id: '', name, description });
+		res.status(201).json(newProject);
+	} catch (error) {
+		console.error('Error creating project:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 // read (retrieve) all projects
 app.get('/projects', async (req, res) => {
-	const projects = await dbService.getProjects();
-	res.json(projects);
+	try {
+		const projects = await dbService.getProjects();
+		res.json(projects);
+	} catch (error) {
+		console.error('Error retrieving projects:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 // read (retrieve) project by Id
 app.get('/projects/:id', async (req, res) => {
-	const id = req.params.id;
-	const project = await dbService.getProjectById(id);
-	res.json(project);
+	try {
+		const id = req.params.id;
+		const project = await dbService.getProjectById(id);
+		if (!project) {
+			return res.status(404).json({ error: 'Project not found' });
+		}
+		res.json(project);
+	} catch (error) {
+		console.error('Error retrieving project:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 
 // update project
 app.put('/projects/:id', async (req, res) => {
-	const id = req.params.id;
-	const project = req.body;
-	const updatedProject = await dbService.updateProject(id, project);
-	res.json(updatedProject);
+	try {
+		const id = req.params.id;
+		const project = req.body;
+		const updatedProject = await dbService.updateProject(id, project);
+		res.json(updatedProject);
+	} catch (error) {
+		console.error('Error updating project:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 // delete project
 app.delete('/projects/:id', async (req, res) => {
-	const id = req.params.id;
-	await dbService.deleteProject(id);
-	res.status(204).send();
+	try {
+		const id = req.params.id;
+		await dbService.deleteProject(id);
+		res.status(204).send();
+	} catch (error) {
+		console.error('Error deleting project:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 
 // Define routes for reports
 
 // Create report
 app.post('/projects/:projectId/reports', async (req, res) => {
-	const report = req.body;
-	const project_id = req.params.projectId;
-    const createdReport = await dbService.createReport({...report, project_id});
-    res.status(201).json(createdReport);
+	try {
+		const report = req.body;
+		const project_id = req.params.projectId;
+		const createdReport = await dbService.createReport({ ...report, project_id });
+		res.status(201).json(createdReport);
+	} catch (error) {
+		console.error('Error creating report:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 // Get all reports for specific project
 app.get('/projects/:projectId/reports', async (req, res) => {
-	const projectId = req.params.projectId;
-	const reports = await dbService.getReport(projectId);
-	res.json(reports);
+	try {
+		const projectId = req.params.projectId;
+		const reports = await dbService.getReport(projectId);
+		res.json(reports);
+	} catch (error) {
+		console.error('Error retrieving reports:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 // Get specific report by id for a specific project
 app.get('/projects/:projectId/reports/:id', async (req, res) => {
-	const projectId = req.params.projectId;
-	const id = req.params.id;
-	const reports = await dbService.getReportById(projectId, id);
-	res.json(reports);
+	try {
+		const projectId = req.params.projectId;
+		const id = req.params.id;
+		const report = await dbService.getReportById(projectId, id);
+		if (!report) {
+			return res.status(404).json({ error: 'Report not found' });
+		}
+		res.json(report);
+	} catch (error) {
+		console.error('Error retrieving report:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 // update report
 app.put('/projects/:projectId/reports/:id', async (req, res) => {
-	const projectId = req.params.projectId;
-	const id = req.params.id;
-	const report = req.body;
-	const updatedReport = await dbService.updateReport(id, { ...report, project_id: projectId });
-	res.json(updatedReport);
+	try {
+		const projectId = req.params.projectId;
+		const id = req.params.id;
+		const report = req.body;
+		const updatedReport = await dbService.updateReport(id, { ...report, project_id: projectId });
+		res.json(updatedReport);
+	} catch (error) {
+		console.error('Error updating report:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 // delete report
 app.delete('/projects/:projectId/reports/:id', async (req, res) => {
-	const projectId = req.params.projectId;
-	const id = req.params.id;
-	await dbService.deleteReport(projectId, id);
-	res.status(204).send();
+	try {
+		const projectId = req.params.projectId;
+		const id = req.params.id;
+		await dbService.deleteReport(projectId, id);
+		res.status(204).send();
+	} catch (error) {
+		console.error('Error deleting report:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 
 // Retrieve all reports with keywords appearing at least thrice
+// Retrieve all reports with keywords appearing at least thrice
 app.get('/reports/keywords/:keyword', async (req, res) => {
-	const keyword = req.params.keyword;
-	const reports = await dbService.RepeatedWord(keyword);
-	res.json(reports);
+	try {
+		const keyword = req.params.keyword;
+		const reports = await dbService.RepeatedWord(keyword);
+		res.json(reports);
+	} catch (error) {
+		console.error('Error retrieving reports with repeated keyword:', error);
+		res.status(500).json({ error: 'Internal server error' });
+	}
 });
 
 app.listen(port, () => {
