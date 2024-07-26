@@ -1,3 +1,4 @@
+ // Define database operations.
 import db from './db.service'; // for `run` and `query` commands
 
 export default class DbService {
