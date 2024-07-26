@@ -40,19 +40,19 @@ class ValidationError extends Error {
 // Define routes for projects
 
 // create project
-app.post('/projects', async (req, res) => {
-	try {
-		const { name, description } = req.body;
-		if (!name || !description) {
-			return res.status(400).json({ error: 'Missing required parameters' });
-		}
-		const newProject = await dbService.createProject({ id: '', name, description });
-		res.status(201).json(newProject);
-	} catch (error) {
-		console.error('Error creating project:', error);
-		res.status(500).json({ error: 'Internal server error' });
-	}
+app.post('/projects', async (req, res, next) => {
+    try {
+        const { name, description } = req.body;
+        if (!name || !description) {
+            throw new ValidationError('Missing required parameters');
+        }
+        const newProject = await dbService.createProject({ id: '', name, description });
+        res.status(201).json(newProject);
+    } catch (error) {
+        next(error);
+    }
 });
+
 // read (retrieve) all projects
 app.get('/projects', async (req, res) => {
 	try {
@@ -180,6 +180,17 @@ app.get('/reports/keywords/:keyword', async (req, res) => {
 		res.status(500).json({ error: 'Internal server error' });
 	}
 });
+
+// Add error handling middleware
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+	if (err instanceof ValidationError) {
+	  res.status(400).json({ error: err.message });
+	} else if (err instanceof DatabaseError) {
+	  res.status(500).json({ error: 'Database error' });
+	} else {
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
 
 app.listen(port, () => {
 	console.log(`[server]: Server is running at http://localhost:${port}`);
