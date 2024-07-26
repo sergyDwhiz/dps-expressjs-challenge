@@ -94,6 +94,18 @@ app.delete('/projects/:projectId/reports/:id', async (req, res) => {
 	await dbService.deleteReport(projectId, id);
 	res.status(204).send();
 });
+
+// Retrieve all reports with keywords appearing at least thrice
+app.get('/reports/keywords/:keyword', async (req, res) => {
+	try {
+		const keyword = req.params.keyword;
+		const reports = await dbService.RepeatedWord(keyword);
+		res.json(reports);
+	} catch (error) {
+        console.error('Error retrieving reports with repeated words:', error);
+	}
+});
+
 app.listen(port, () => {
 	console.log(`[server]: Server is running at http://localhost:${port}`);
 });
