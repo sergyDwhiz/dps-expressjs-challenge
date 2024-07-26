@@ -1,10 +1,12 @@
 import express, { Express } from 'express';
 import dotenv from 'dotenv';
+import DbService from '../src/services/DbService';
 
 dotenv.config();
 
 const app: Express = express(); // for parsing json data
 const port = process.env.PORT || 3000;
+const dbService = new DbService();
 
 app.use(express.json());
 
@@ -18,6 +20,9 @@ const authMiddleware = (req: express.Request, res: express.Response, next: expre
 	}
 	next();
 };
+
+// Define routes
+
 
 app.use(authMiddleware);
 
